@@ -1,0 +1,76 @@
+name: windows-desktop-unsigned
+
+# Builds an unsigned Windows x64 installer of OpenCode Desktop on a standard GitHub-hosted runner.
+# The bundled CLI is the published npm package, so no CLI build or signing secrets are needed.
+
+on:
+  push:
+    branches: [ci-windows-unsigned]
+  workflow_dispatch:
+    inputs:
+      cli_version:
+        description: "Version or tag of @opencode/cli-windows-x64-baseline to bundle"
+        default: latest
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      OPENCODE_CHANNEL: prod
+      OPENCODE_CLI_TARGET: x86_64-pc-windows-msvc
+      CLI_VERSION: ${{ inputs.cli_version || 'latest' }}
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Fetch the published Windows CLI
+        run: |
+          work="$RUNNER_TEMP/cli-fetch"
+          dist="$RUNNER_TEMP/cli-dist"
+          mkdir -p "$work" "$dist"
+          bun install --no-save --cwd "$work" "@opencode/cli-windows-x64-baseline@${CLI_VERSION}" --os=win32 --cpu=x64
+          cp -r "$work/node_modules/@opencode/cli-windows-x64-baseline" "$dist/cli-windows-x64-baseline"
+          test -f "$dist/cli-windows-x64-baseline/bin/opencode.exe"
+          version=$(node -e "console.log(require(process.argv[1]).version)" "$dist/cli-windows-x64-baseline/package.json")
+          echo "Bundling CLI $version"
+          echo "OPENCODE_CLI_DIST=$dist" >> "$GITHUB_ENV"
+          echo "OPENCODE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Prepare
+        working-directory: packages/desktop
+        run: bun ./scripts/prepare.ts
+
+      - name: Unit tests (service)
+        working-directory: packages/desktop
+        continue-on-error: true
+        run: bun test src/main/service
+
+      - name: Typecheck
+        working-directory: packages/desktop
+        continue-on-error: true
+        run: bun run typecheck
+
+      - name: Build
+        working-directory: packages/desktop
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: bun run build
+
+      - name: Package (unsigned)
+        working-directory: packages/desktop
+        timeout-minutes: 45
+        run: npx electron-builder --win --publish never --config electron-builder.config.ts
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: opencode-desktop-windows-x64-unsigned
+          path: packages/desktop/dist/*.exe
+          if-no-files-found: error
