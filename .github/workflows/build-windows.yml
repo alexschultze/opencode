@@ -1,6 +1,8 @@
 name: build-windows
 
 on:
+  push:
+    branches: [http-proxy]
   workflow_dispatch:
     inputs:
       target:
@@ -26,11 +28,11 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Build
-        run: bun packages/cli/script/build.ts --target=${{ inputs.target }}
+        run: bun packages/cli/script/build.ts --target=${{ inputs.target || 'opencode-windows-x64' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: ${{ inputs.target }}
-          path: packages/cli/dist/${{ inputs.target }}
+          name: ${{ inputs.target || 'opencode-windows-x64' }}
+          path: packages/cli/dist/${{ inputs.target || 'opencode-windows-x64' }}
           if-no-files-found: error
