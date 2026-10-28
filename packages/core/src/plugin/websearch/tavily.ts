@@ -3,7 +3,7 @@ export * as WebSearchTavily from "./tavily.js"
 import { define } from "@opencode/plugin/effect/plugin"
 import { Duration, Effect, Schema, Scope } from "effect"
 import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http"
-import { ProxyHttpClient } from "../proxy.js"
+import { WebProxyHttpClient } from "../webproxy.js"
 import { App } from "../../app.js"
 
 export const endpoint = "https://api.tavily.com/search"
@@ -28,7 +28,7 @@ const SearchResponse = Schema.Struct({
 export const Plugin = define<HttpClient.HttpClient | Scope.Scope>({
   id: "opencode.websearch.tavily",
   effect: Effect.fn("WebSearchTavily.Plugin")(function* (ctx) {
-    const http = ProxyHttpClient.wrap(yield* HttpClient.HttpClient)
+    const http = WebProxyHttpClient.wrap(yield* HttpClient.HttpClient)
     yield* ctx.integration.transform((editor) => {
       editor.update("tavily", (integration) => (integration.name = "Tavily"))
       editor.method.update({

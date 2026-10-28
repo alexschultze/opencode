@@ -5,7 +5,7 @@ import { ToolFailure } from "@opencode/ai"
 import { Duration, Effect, Schema } from "effect"
 import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from "effect/http"
 import { Parser } from "htmlparser2"
-import { ProxyHttpClient } from "../../plugin/proxy.js"
+import { WebProxyHttpClient } from "../../plugin/webproxy.js"
 import { Permission } from "../../permission.js"
 import { convertHTMLToMarkdown, MAX_MARKDOWN_BYTES } from "../html-markdown.js"
 import { collectBoundedResponseBody } from "../http-body.js"
@@ -104,7 +104,7 @@ const convert = (content: string, contentType: string, format: Format) => {
 export const Plugin = {
   id: "opencode.tool.webfetch",
   effect: Effect.fn("WebFetchTool.Plugin")(function* (ctx: Context) {
-    const http = ProxyHttpClient.wrap(yield* HttpClient.HttpClient)
+    const http = WebProxyHttpClient.wrap(yield* HttpClient.HttpClient)
     const permission = yield* Permission.Service
 
     yield* ctx.tool

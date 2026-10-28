@@ -1,16 +1,16 @@
-export * as ProxyHttpClient from "./proxy.js"
+export * as WebProxyHttpClient from "./webproxy.js"
 
 import { Effect, Option } from "effect"
 import { FetchHttpClient, HttpClient } from "effect/http"
 
-// Process-wide because webfetch and every websearch provider share one HttpClient; the config plugin keeps it current.
+// Web-only (webfetch + websearch). Process-wide because webfetch and every websearch provider share one HttpClient; the config plugin keeps it current.
 let current: string | undefined
 
 export const set = (url: string | undefined) => {
   current = url
 }
 
-/** Routes requests through the configured `proxy` URL; without one the runtime's HTTP_PROXY/HTTPS_PROXY handling applies. */
+/** Routes requests through the configured `webproxy` URL; without one the runtime's HTTP_PROXY/HTTPS_PROXY handling applies. */
 export const wrap = (http: HttpClient.HttpClient) =>
   HttpClient.transformResponse(http, (effect) =>
     Effect.suspend(() => {

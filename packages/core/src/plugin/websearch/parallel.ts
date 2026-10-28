@@ -3,7 +3,7 @@ export * as WebSearchParallel from "./parallel.js"
 import { define } from "@opencode/plugin/effect/plugin"
 import { Effect, Schema, Scope } from "effect"
 import { HttpClient } from "effect/http"
-import { ProxyHttpClient } from "../proxy.js"
+import { WebProxyHttpClient } from "../webproxy.js"
 import { App } from "../../app.js"
 import { WebSearchMcp } from "./mcp.js"
 
@@ -52,7 +52,7 @@ const McpOutput = Schema.Struct({
 export const Plugin = define<HttpClient.HttpClient | Scope.Scope>({
   id: "opencode.websearch.parallel",
   effect: Effect.fn("WebSearchParallel.Plugin")(function* (ctx) {
-    const http = ProxyHttpClient.wrap(yield* HttpClient.HttpClient)
+    const http = WebProxyHttpClient.wrap(yield* HttpClient.HttpClient)
     yield* ctx.integration.transform((editor) => {
       editor.update("parallel", (integration) => (integration.name = "Parallel"))
       editor.method.update({
