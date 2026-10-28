@@ -100,6 +100,10 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   websearch: ConfigWebSearch.Selection.pipe(optional).annotate({
     description: "Web search provider selection",
   }),
+  proxy: Schema.String.pipe(optional).annotate({
+    description:
+      "HTTP proxy URL (e.g. http://host:8080) used by the webfetch and websearch tools. Overrides HTTP_PROXY/HTTPS_PROXY.",
+  }),
   plugins: ConfigPlugin.Plugins.pipe(optional).annotate({
     description: "Ordered plugin enablement directives and external package declarations",
   }),

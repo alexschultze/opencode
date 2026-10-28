@@ -3,6 +3,7 @@ export * as WebSearchFirecrawl from "./firecrawl.js"
 import { define } from "@opencode/plugin/effect/plugin"
 import { Effect, Option, Schema, Scope } from "effect"
 import { HttpClient } from "effect/http"
+import { ProxyHttpClient } from "../proxy.js"
 import { App } from "../../app.js"
 import { WebSearchMcp } from "./mcp.js"
 
@@ -36,7 +37,7 @@ const decodeSearchResponse = Schema.decodeUnknownOption(SearchResponse)
 export const Plugin = define<HttpClient.HttpClient | Scope.Scope>({
   id: "opencode.websearch.firecrawl",
   effect: Effect.fn("WebSearchFirecrawl.Plugin")(function* (ctx) {
-    const http = yield* HttpClient.HttpClient
+    const http = ProxyHttpClient.wrap(yield* HttpClient.HttpClient)
     yield* ctx.integration.transform((editor) => {
       editor.update("firecrawl", (integration) => (integration.name = "Firecrawl"))
       editor.method.update({

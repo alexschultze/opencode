@@ -3,6 +3,7 @@ export * as WebSearchTinyFish from "./tinyfish.js"
 import { define } from "@opencode/plugin/effect/plugin"
 import { Duration, Effect, Option, Schema, Scope } from "effect"
 import { HttpClient, HttpClientRequest } from "effect/http"
+import { ProxyHttpClient } from "../proxy.js"
 import { App } from "../../app.js"
 import { collectBoundedResponseBody } from "../../tool/http-body.js"
 import { WebSearchMcp } from "./mcp.js"
@@ -49,7 +50,7 @@ const InitializedNotification = Schema.Struct({
 export const Plugin = define<HttpClient.HttpClient | Scope.Scope>({
   id: "opencode.websearch.tinyfish",
   effect: Effect.fn("WebSearchTinyFish.Plugin")(function* (ctx) {
-    const http = yield* HttpClient.HttpClient
+    const http = ProxyHttpClient.wrap(yield* HttpClient.HttpClient)
     yield* ctx.integration.transform((editor) => {
       editor.update("tinyfish", (integration) => (integration.name = "TinyFish"))
       editor.method.update({
