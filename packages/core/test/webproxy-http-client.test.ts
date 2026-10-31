@@ -31,3 +31,11 @@ describe("WebProxyHttpClient", () => {
     expect((await seen() as { proxy?: string }).proxy).toBeUndefined()
   })
 })
+
+describe("WebProxyHttpClient.describe", () => {
+  test("hides credentials", () => {
+    expect(WebProxyHttpClient.describe("http://user:secret@proxy.test:8080")).toBe("http://proxy.test:8080")
+    expect(WebProxyHttpClient.describe(undefined)).toBe("none")
+    expect(WebProxyHttpClient.describe("not a url")).toBe("invalid")
+  })
+})

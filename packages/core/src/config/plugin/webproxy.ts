@@ -10,7 +10,13 @@ export const Plugin = define({
   id: "opencode.config.webproxy",
   effect: Effect.fn(function* (ctx) {
     const config = yield* Config.Service
-    const apply = config.entries().pipe(Effect.map((entries) => WebProxyHttpClient.set(Config.latest(entries, "webproxy"))))
+    const apply = config.entries().pipe(
+      Effect.flatMap((entries) => {
+        const webproxy = Config.latest(entries, "webproxy")
+        WebProxyHttpClient.set(webproxy)
+        return Effect.logInfo("webproxy configuration applied", { webproxy: WebProxyHttpClient.describe(webproxy) })
+      }),
+    )
     yield* ConfigEntryObserver.observe(config, ctx.event, apply)
     yield* apply
   }),
